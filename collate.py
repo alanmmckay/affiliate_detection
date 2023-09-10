@@ -2,16 +2,16 @@ from helper_functions import DataInterface, SourceInterface, JsonInterface
 import json
 from urllib.parse import urlparse, parse_qsl
 
-db_object = DataInterface("datadir/","/crawl-data.sqlite")
-sources_object = SourceInterface()
+db_handler = DataInterface("datadir/","/crawl-data.sqlite")
+sources_handler = SourceInterface()
 json_handler = JsonInterface()
-source_list = sources_object.get_source_files()
+source_list = sources_handler.get_source_files()
 
 info_dict = dict()
 
 for f in source_list:
-    sources_object.set_html_file(f)
-    url = db_object.get_url_from_source(f)
+    sources_handler.set_html_file(f)
+    url = db_handler.get_url_from_source(f)
     url_object = urlparse(url)
     hostname = url_object.hostname
     try:
@@ -20,9 +20,9 @@ for f in source_list:
         info_dict[hostname] = dict()
 
     info_dict[hostname][url] = dict()
-    info_dict[hostname][url]['visit_id'] = sources_object.get_visit_id()
+    info_dict[hostname][url]['visit_id'] = sources_handler.get_visit_id()
     info_dict[hostname][url]['anchors'] = dict()
-    hrefs = sources_object.get_anchor_hrefs()
+    hrefs = sources_handler.get_anchor_hrefs()
     for anchor in hrefs:
         info_dict[hostname][url]['anchors'][anchor] = dict()
         nurl_object = urlparse(anchor)
