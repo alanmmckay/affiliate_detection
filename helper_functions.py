@@ -54,7 +54,13 @@ class SourceInterface(object):
             try:
                 anchors.append(anchor)
             except:
-                print("error in get_anchor_soup")
+                    log_str = "Error within page: " + self._file_name + "\n"
+                    log_str += 'Tried to access anchor soup of the following element: \n'
+                    log_str += str(anchor)
+                    log_str += '\n\n\n\n'
+                    f = open('error_logs/get_anchor_soup_log.txt','a')
+                    f.write(log_str)
+                    f.close()
         return anchors
 
     def get_anchor_hrefs(self, soup_anchor_object = None):
@@ -85,7 +91,13 @@ class SourceInterface(object):
                 try:
                     anchor_attributes.append(attributes)
                 except:
-                    print("error in get_anchor_info")
+                    log_str = "Error within page: " + self._file_name + "\n"
+                    log_str += 'Tried to access anchor attributes of the following element: \n'
+                    log_str += str(anchor)
+                    log_str += '\n\n\n\n'
+                    f = open('error_logs/get_anchor_attributes_log.txt','a')
+                    f.write(log_str)
+                    f.close()
             return anchor_attributes
         else:
             return soup_anchor_object.attrs
@@ -99,7 +111,13 @@ class SourceInterface(object):
                 try:
                     anchor_content.append(content)
                 except:
-                    print("error in get_anchor_content")
+                    log_str = "Error within page: " + self._file_name + "\n"
+                    log_str += 'Tried to access anchor content of the following element: \n'
+                    log_str += str(anchor)
+                    log_str += '\n\n\n\n'
+                    f = open('error_logs/get_anchor_content_log.txt','a')
+                    f.write(log_str)
+                    f.close()
             return anchor_content
         else:
             return soup_anchor_object.contents
