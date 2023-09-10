@@ -24,7 +24,7 @@ class DataInterface(object):
             f.write(log_str)
             f.close()
 
-
+#Seems to be an opportunity for a SourcesInterface in addition to this:
 class SourceInterface(object):
     def __init__(self, path = 'datadir/sources/'):
         self._path = path
@@ -60,6 +60,8 @@ class SourceInterface(object):
 
     def get_anchor_info(self):
         #tool a function which grabs *all* anchor info
+        #soup.findAll('x')[i].attrs
+        #soup.findAll('x')[i].contents
         pass
 
 
@@ -81,6 +83,7 @@ class JsonInterface(object):
 
 
 if __name__ == "__main__":
+    #Change this test to ask for filename:
     test_file_name = '3571936341707252-c001159620014cf3dd33a0f41016184f.html'
     data_object = DataInterface('datadir/','crawl-data.sqlite')
     print(data_object.get_url_from_source(test_file_name))
