@@ -6,12 +6,12 @@ from bs4 import BeautifulSoup
 class DataInterface(object):
     #db_object = DataInterface("./crawl-data.sqlite")
     def __init__(self,path,file_name):
-        self.db_location = path + file_name
-        self.connection = lite.connect(self.db_location)
+        self._db_location = path + file_name
+        self._connection = lite.connect(self._db_location)
 
     def get_url_from_source(self,file_name):
         try:
-            cursor = self.connection.cursor()
+            cursor = self._connection.cursor()
             visit_id = file_name.split('-')[0]
             query = 'select url from navigations where visit_id = '+visit_id
             result = cursor.execute(query)
@@ -27,29 +27,29 @@ class DataInterface(object):
 
 class SourceInterface(object):
     def __init__(self, path = 'datadir/sources/'):
-        self.path = path
-        self.source_files = os.listdir(path)
+        self._path = path
+        self._source_files = os.listdir(path)
 
     def set_html_file(self,file_name):
-        f = open(self.path+file_name, 'r')
-        self.file_name = file_name
-        self.file_data = f.read()
+        f = open(self._path+file_name, 'r')
+        self._file_name = file_name
+        self._file_data = f.read()
         f.close()
 
     def get_source_files(self):
-        return self.source_files
+        return self._source_files
 
     def get_visit_id(self):
-        return self.file_name.split('-')[0]
+        return self._file_name.split('-')[0]
 
     def get_anchor_hrefs(self):
-        soup = BeautifulSoup(self.file_data,features="html.parser")
+        soup = BeautifulSoup(self._file_data,features="html.parser")
         anchors = list()
         for anchor in soup.findAll('a'):
             try:
                 anchors.append(anchor['href'])
             except:
-                log_str = "Error within page: " + self.file_name + "\n"
+                log_str = "Error within page: " + self._file_name + "\n"
                 log_str += 'Tried to access href of the following element: \n'
                 log_str += str(anchor)
                 log_str += '\n\n\n\n'
@@ -66,15 +66,15 @@ class SourceInterface(object):
 class JsonInterface(object):
     def __init__(self):
         # a python dict that will become a json object; consider new var name
-        self.json_object = None
+        self._json_object = None
 
     def write_to_file(self,file_name, new_json_object = None):
         if new_json_object != None:
-            self.json_object = new_json_object
+            self._json_object = new_json_object
 
-        if self.json_object != None:
+        if self._json_object != None:
             f = open(file_name, 'w')
-            f.write(json.dumps(self.json_object, indent = 4))
+            f.write(json.dumps(self._json_object, indent = 4))
             f.close()
         else:
             raise Exception("Error in JsonInterface")
