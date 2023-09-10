@@ -1,23 +1,19 @@
-from helper_functions import DataInterface, SourceInterface
-import os
+from helper_functions import DataInterface, SourceInterface, JsonInterface
 import json
 from urllib.parse import urlparse, parse_qsl
 
 db_object = DataInterface("datadir/","/crawl-data.sqlite")
 sources_object = SourceInterface()
-
-source_list = os.listdir(sources_object.path)
+json_handler = JsonInterface()
+source_list = sources_object.get_source_files()
 
 info_dict = dict()
-
 
 for f in source_list:
     sources_object.set_html_file(f)
     url = db_object.get_url_from_source(f)
     url_object = urlparse(url)
     hostname = url_object.hostname
-    '''if hostname not in info_dict: #inefficient
-        info_dict[hostname] = dict()'''
     try:
         info_dict[hostname]
     except:
@@ -47,8 +43,6 @@ for f in source_list:
             else:
                 raise Exception("Seem to have a query of length > 3")
 
-f = open('analysis_files/info.json','w')
-f.write(json.dumps(info_dict, indent = 4))
-f.close()
+json_handler.write_to_file('analysis_files/info.json', info_dict)
 
 

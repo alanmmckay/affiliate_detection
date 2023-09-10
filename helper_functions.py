@@ -1,3 +1,5 @@
+import os
+import json
 import sqlite3 as lite
 from bs4 import BeautifulSoup
 
@@ -23,16 +25,19 @@ class DataInterface(object):
             f.close()
 
 
-
 class SourceInterface(object):
     def __init__(self, path = 'datadir/sources/'):
         self.path = path
+        self.source_files = os.listdir(path)
 
     def set_html_file(self,file_name):
         f = open(self.path+file_name, 'r')
         self.file_name = file_name
         self.file_data = f.read()
         f.close()
+
+    def get_source_files(self):
+        return self.source_files
 
     def get_visit_id(self):
         return self.file_name.split('-')[0]
@@ -56,6 +61,23 @@ class SourceInterface(object):
     def get_anchor_info(self):
         #tool a function which grabs *all* anchor info
         pass
+
+
+class JsonInterface(object):
+    def __init__(self):
+        # a python dict that will become a json object; consider new var name
+        self.json_object = None
+
+    def write_to_file(self,file_name, new_json_object = None):
+        if new_json_object != None:
+            self.json_object = new_json_object
+
+        if self.json_object != None:
+            f = open(file_name, 'w')
+            f.write(json.dumps(self.json_object, indent = 4))
+            f.close()
+        else:
+            raise Exception("Error in JsonInterface")
 
 
 if __name__ == "__main__":
