@@ -140,6 +140,13 @@ class JsonInterface(object):
         else:
             raise Exception("Error in JsonInterface")
 
+    def read_from_file(self,file_name):
+        f = open(file_name, 'r')
+        data = f.read()
+        f.close()
+        self._json_object = json.loads(data)
+        return self._json_object
+
 
 if __name__ == "__main__":
     #Change this test to ask for filename:
