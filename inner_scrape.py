@@ -34,9 +34,6 @@ json_handler = JsonInterface()
 outer_scrape = json_handler.read_from_file('analysis_files/info.json')
 #print(len(outer_scrape))
 
-'''
-{ anchor: {site1 : visit_id1; site2: visit_id2;} }
-'''
 
 def trim_fragment(href):
     try:
@@ -51,7 +48,7 @@ def trim_fragment(href):
     except:
         return href
 
-count = 0
+
 bucket = dict()
 for domain in outer_scrape:
     for site in outer_scrape[domain]:
@@ -60,22 +57,28 @@ for domain in outer_scrape:
             if protocol[0:7] == 'http://' or protocol[0:8] == 'https://':
                 trimmed_href = trim_fragment(anchor_href)
                 try:
-                    bucket[trimmed_href][site] = outer_scrape[domain][site]['visit_id']
+                    bucket[trimmed_href][site] = dict()
+                    bucket[trimmed_href][site]['visit_id'] = outer_scrape[domain][site]['visit_id']
+                    if trimmed_href != anchor_href:
+                        bucket[trimmed_href][site]['original_href'] = anchor_href
                 except:
                     bucket[trimmed_href] = dict()
-                    bucket[trimmed_href][site] = outer_scrape[domain][site]['visit_id']
+                    bucket[trimmed_href][site] = dict()
+                    bucket[trimmed_href][site]['visit_id'] = outer_scrape[domain][site]['visit_id']
+                    if trimmed_href != anchor_href:
+                        bucket[trimmed_href][site]['original_href'] = anchor_href
             else:
-                #craft logging here
-                continue
-    '''count += 1
-    print(count)
-    if count == 2:
-        break
-    '''
+                log_str = "Non-http href found through visit_id "+ outer_scrape[domain][site]['visit_id']
+                log_str += " for website: " + site + "\n"
+                log_str += "value given: \n"
+                log_str += anchor_href + "\n\n\n"
+                f = open('logs/non-href-report.txt', 'a')
+                f.write(log_str)
+                f.close()
 
-#print(bucket)
+print("Quantity of hrefs to get: " + str(len(bucket)))
+json_handler.write_to_file('analysis_files/inner_crawl_associations.json', bucket)
 
-json_handler.write_to_file('test.json', bucket)
 
 #visit_id is associated with redirect url in crawl-data.http_redirects
 # ----------------------------------------#
