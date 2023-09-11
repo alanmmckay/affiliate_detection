@@ -12,7 +12,7 @@ from pathlib import Path
 
 from custom_command import YoutubeClicker
 from openwpm.command_sequence import CommandSequence
-from openwpm.commands.browser_commands import GetCommand, DumpPageSourceCommand, ScreenshotFullPageCommand
+from openwpm.commands.browser_commands import GetCommand, DumpPageSourceCommand, SaveScreenshotCommand
 from openwpm.config import BrowserParams, ManagerParams
 from openwpm.storage.sql_provider import SQLiteStorageProvider
 from openwpm.task_manager import TaskManager
@@ -79,14 +79,19 @@ for domain in outer_scrape:
 print("Quantity of hrefs to get: " + str(len(bucket)))
 json_handler.write_to_file('analysis_files/inner_crawl_associations.json', bucket)
 
+print(len(list(bucket.keys())))
+
+sites = list(bucket.keys())
+
+#sites = ['https://chirpy.st/u1289_yZq99p']
 
 #visit_id is associated with redirect url in crawl-data.http_redirects
 # ----------------------------------------#
-'''
+
 
 # Loads the default ManagerParams
 # and NUM_BROWSERS copies of the default BrowserParams
-NUM_BROWSERS = 3
+NUM_BROWSERS = 1
 manager_params = ManagerParams(num_browsers=NUM_BROWSERS)
 browser_params = [BrowserParams(display_mode="xvfb") for _ in range(NUM_BROWSERS)]
 
@@ -108,7 +113,7 @@ for browser_param in browser_params:
     # Record the callstack of all WebRequests made
     # browser_param.callstack_instrument = True
 
-    # Record DNS resolution
+    # Record DNS resolution3
     browser_param.dns_instrument = False
 
     # Enable bot mitigation
@@ -152,10 +157,10 @@ with TaskManager(
         command_sequence.append_command(GetCommand(url=site, sleep=3), timeout=60)
 
         # Grab Full-page screenshot ensuring a scroll effort
-        command_sequence.append_command(ScreenshotFullPageCommand(""))
+        command_sequence.append_command(SaveScreenshotCommand(""))
 
         # Dump the generated source
-        command_sequence.append_command(DumpPageSourceCommand(""))
+        #command_sequence.append_command(DumpPageSourceCommand(""))
 
         #Test custom command:
         #command_sequence.append_command(YoutubeClicker())
@@ -164,5 +169,4 @@ with TaskManager(
         manager.execute_command_sequence(command_sequence)
 
 # End command-execution wrapper
-'''
 
