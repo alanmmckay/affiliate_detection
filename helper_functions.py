@@ -2,6 +2,7 @@ import os
 import json
 import sqlite3 as lite
 from bs4 import BeautifulSoup
+from hashlib import md5
 
 
 class DataInterface(object):
@@ -24,6 +25,14 @@ class DataInterface(object):
             f = open('error_logs/get_url_from_source_log.txt','a')
             f.write(log_str)
             f.close()
+
+    def get_source_from_url(self,url):
+        cursor = self._connection.cursor()
+        query = 'select visit_id from navigations where url = "'+url+'";'
+        result = str(cursor.execute(query).fetchone()[0])
+        print(result)
+        hash_val = md5(url.encode("utf-8")).hexdigest()
+        return str(result)+'-'+str(hash_val)+'.html'
 
 
 #Seems to be an opportunity for a SourcesInterface in addition to this:
