@@ -36,6 +36,7 @@ for f in source_list:
         info_dict[hostname][url]['anchors'][anchor]['subdomain'] = nurl_object.path
         info_dict[hostname][url]['anchors'][anchor]['querystring'] = nurl_object.query
         info_dict[hostname][url]['anchors'][anchor]['queries'] = dict()
+        info_dict[hostname][url]['anchors'][anchor]['annotation'] = None
 
         queries = parse_qsl(nurl_object.query)
         for query in queries:
