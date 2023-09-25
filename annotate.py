@@ -9,6 +9,7 @@ db_handler = DataInterface("datadir/","/crawl-data.sqlite")
 inputStr = str()
 quit = ['quit','Quit','QUIT']
 cont = ['continue','Continue']
+whitelist = ["rstyle.me","go.skimresources.com","click.linksynergy.com"]
 inputStr = input("Input website URL: ")
 
 while inputStr not in quit:
@@ -23,6 +24,12 @@ while inputStr not in quit:
 
         os.system('firefox ' + 'datadir/sources/' + local_page + ' > /dev/null 2>&1 &')
 
+        for anchor in info[hostname][url]['anchors']:
+            if urlparse(anchor).hostname in whitelist:
+                info[hostname][url]['anchors'][anchor]['annotation'] = 'yes'
+                print(str(anchor) + " annotation switched to yes")
+
+        print("Local filename: " + local_page)
         inputStr = input("Input anchor URL to annotate: ")
 
         while inputStr not in cont:
@@ -36,7 +43,7 @@ while inputStr not in quit:
                 if inputStr != None:
                     old_val = info[hostname][url]['anchors'][anchor]['annotation']
                     info[hostname][url]['anchors'][anchor]['annotation'] = inputStr
-                    print(str(url) + " annotation switched from " + str(old_val) + " to " + inputStr)
+                    print(str(anchor) + " annotation switched from " + str(old_val) + " to " + inputStr)
 
             else:
 
@@ -46,7 +53,7 @@ while inputStr not in quit:
             inputStr = input("Input anchor URL to annotate: ")
 
 
-        json_handler.write_to_file('info.json',info)
+        json_handler.write_to_file('analysis_files/info.json',info)
 
         os.system('firefoxPID=$(pgrep firefox); kill $firefoxPID;')
 
