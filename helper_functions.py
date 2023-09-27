@@ -156,6 +156,20 @@ class JsonInterface(object):
         self._json_object = json.loads(data)
         return self._json_object
 
+class CsvInterface(object):
+    def __init__(self):
+        pass
+
+    def read_from_file(self,file_name, delimiter = ','):
+        f = open(file_name,'r')
+        data = f.readlines()
+        f.close()
+        entries = dict()
+        for line in data:
+            row = line.split(delimiter)
+            entries[row[0]] = row[1:len(row)]
+        entries[row[0]][len(row)-2] = entries[row[0]][len(row)-2].split('\n')[0]
+        return entries
 
 if __name__ == "__main__":
     #Change this test to ask for filename:
