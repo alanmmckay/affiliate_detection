@@ -3,6 +3,7 @@ import pandas as pd
 from urllib.parse import urlparse
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import math
 
@@ -25,10 +26,11 @@ def build_parameter_list(parameter_dict):
 
 def build_url_map(info_dict):
     """
-        A function which receives a dictionary formed through a crawl in the
+        A function which receives a dictionary formed through a crawl for the
         context of this project and returns a dictionary whose keys are the
         urls contained in each pages' anchor tags. The values for these keys
-        are the urls which contain the anchor tags.
+        are the urls which contain the anchor tags. This is used to allow
+        easy navigation through dictionary formed through the crawl.
     """
     url_map = dict()
     for hostname in info_dict:
@@ -39,26 +41,12 @@ def build_url_map(info_dict):
 
 def build_value_map(info_dict):
     """
-        A function which receives a dictionary formed through a crawl in the
+        A function which receives a dictionary formed through a crawl for the
         context of this project and returns a dictionary whose keys are the
-        values of query string parameters discovered through the crawl. The
-        values of this dictionary's keys is some unique value to act as a
-        one-hot encoding.
+        values of query string parameters discovered through the crawl. A
+        value of this dictionary's key set is some unique value to act as an
+        encoding.
     """
-    def post_process(value_map):
-        values_array = list()
-        for value in value_map:
-            values_array.append(value_map[value])
-        values_array = np.array(values_array)
-        b = np.zeros((values_array.size, values_array.max() + 1))
-        b[np.arange(values_array.size),values_array] = 1
-        i = 0
-        ohe_map = dict()
-        for value in value_map:
-            ohe_map[value] = b[i]
-            i+=1
-        return ohe_map
-
     current = 1
     value_map = dict()
     for hostname in info_dict:
@@ -71,11 +59,16 @@ def build_value_map(info_dict):
                     except:
                         value_map[key] = current
                         current += 1
-    ohe_map = post_process(value_map)
-    return ohe_map#value_map
+    return value_map
 
 
 def build_row_dict(info_dict, parameter_list):
+    """
+        This function creates a dictionary such that each key is a URL from
+        the initial crawl and the subsequent value list is that key's value
+        for each parameter. This is currently being unused and needs to factor
+        mapped values.
+    """
     site_dict = dict()
     for hostname in info_dict:
         for url in info_dict[hostname]:
@@ -94,7 +87,7 @@ def build_row_dict(info_dict, parameter_list):
     return site_dict
 
 
-def build_col_dict(info_dict,parameter_list,url_map,value_map):
+def build_col_dict(info_dict,parameter_list,url_map):
     """
         A function which produces a dictionary whose keys are some query-string
         paramter and the values are a list where each entry (i) of the list is
@@ -119,9 +112,12 @@ def build_col_dict(info_dict,parameter_list,url_map,value_map):
             hostname = urlparse(url_map[url]).hostname
             queries = info_dict[hostname][url_map[url]]['anchors'][url]['queries']
             if parameter in queries:
-                col_dict[parameter].append(value_map[queries[parameter]])
+                col_dict[parameter].append(queries[parameter])
             else:
                 col_dict[parameter].append(0)
+        le = LabelEncoder()
+        le.fit(col_dict[parameter])
+        col_dict[parameter] = le.transform(col_dict[parameter])
     return col_dict
 
 
@@ -140,20 +136,15 @@ def build_csv_rows(row_dict):
     return csv
 
 
-
 parameter_list = build_parameter_list(parameter_dict)
 value_map = build_value_map(info_dict)
 url_map = build_url_map(info_dict)
-col_dict = build_col_dict(info_dict, parameter_list, url_map,value_map)
+col_dict = build_col_dict(info_dict, parameter_list, url_map)
 
 frame = pd.DataFrame(col_dict)
-
 y = frame['training_target']
-
 h = frame['training_website_name']
-
 X = frame.drop(['training_target','training_website_name'], axis = 1)
-
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.20, random_state=0)
 
@@ -188,7 +179,7 @@ for i in range(0,len(X.columns)):
 print(features)
 '''
 
-'''
+
 #grid search random forest:
 rf_grid = GridSearchCV(estimator = rf_model, param_grid = param_grid, cv = 5, verbose = 2, n_jobs = 4)
 rf_grid.fit(X_train,y_train)
@@ -205,4 +196,4 @@ for i in range(0,len(X.columns)):
         features.append((X.columns[i],rf_grid.best_estimator_.feature_importances_[i]))
         fd[rf_grid.best_estimator_.feature_importances_[i]] = X.columns[i]
 print(features)
-'''
+
