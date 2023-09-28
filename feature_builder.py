@@ -1,30 +1,64 @@
-from helper_functions import JsonInterface, CsvInterface
+from helper_functions import JsonInterface
 import pandas as pd
 from urllib.parse import urlparse
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 import numpy as np
+import math
 
 json_handler = JsonInterface()
-csv_handler = CsvInterface()
 parameter_dict = json_handler.read_from_file("analysis_files/subset_p_map.json")
 info_dict = json_handler.read_from_file("analysis_files/subset_info.json")
 
 def build_parameter_list(parameter_dict):
+    """
+        A function which receives a dictionary whose keys describe a parameter
+        of the set and returns a list of these parameters. This is used to
+        ensure an enforced ordering as the paramters are built into feature
+        sets
+    """
     parameter_list = list()
     for parameter in parameter_dict:
         parameter_list.append(parameter)
     return parameter_list
 
+
 def build_url_map(info_dict):
+    """
+        A function which receives a dictionary formed through a crawl in the
+        context of this project and returns a dictionary whose keys are the
+        urls contained in each pages' anchor tags. The values for these keys
+        are the urls which contain the anchor tags.
+    """
     url_map = dict()
     for hostname in info_dict:
         for url in info_dict[hostname]:
             for anchor in info_dict[hostname][url]['anchors']:
-                url_map[anchor] = url
+                url_map[anchor] = url #Should consider a log of duplicates
     return url_map
 
 def build_value_map(info_dict):
+    """
+        A function which receives a dictionary formed through a crawl in the
+        context of this project and returns a dictionary whose keys are the
+        values of query string parameters discovered through the crawl. The
+        values of this dictionary's keys is some unique value to act as a
+        one-hot encoding.
+    """
+    def post_process(value_map):
+        values_array = list()
+        for value in value_map:
+            values_array.append(value_map[value])
+        values_array = np.array(values_array)
+        b = np.zeros((values_array.size, values_array.max() + 1))
+        b[np.arange(values_array.size),values_array] = 1
+        i = 0
+        ohe_map = dict()
+        for value in value_map:
+            ohe_map[value] = b[i]
+            i+=1
+        return ohe_map
+
     current = 1
     value_map = dict()
     for hostname in info_dict:
@@ -37,14 +71,9 @@ def build_value_map(info_dict):
                     except:
                         value_map[key] = current
                         current += 1
-    return value_map
+    ohe_map = post_process(value_map)
+    return ohe_map#value_map
 
-def build_head(parameter_list):
-    header = "webpage_from_training_set, "
-    for parameter in parameter_list:
-        header += parameter + ", "
-    header = header[0:len(header)-2] + "\n"
-    return header
 
 def build_row_dict(info_dict, parameter_list):
     site_dict = dict()
@@ -53,7 +82,8 @@ def build_row_dict(info_dict, parameter_list):
             for anchor in info_dict[hostname][url]['anchors']:
                 site_dict[anchor] = list()
                 for parameter in parameter_list:
-                    if parameter in info_dict[hostname][url]['anchors'][anchor]['queries']:
+                    queries = info_dict[hostname][url]['anchors'][anchor]['queries']
+                    if parameter in queries:
                         site_dict[anchor].append(1)
                     else:
                         site_dict[anchor].append(0)
@@ -63,7 +93,14 @@ def build_row_dict(info_dict, parameter_list):
                     site_dict[anchor].append(0)
     return site_dict
 
-def build_col_dict(info_dict,parameter_list,url_map):
+
+def build_col_dict(info_dict,parameter_list,url_map,value_map):
+    """
+        A function which produces a dictionary whose keys are some query-string
+        paramter and the values are a list where each entry (i) of the list is
+        representative of the value for entity (i). An entity is some url from
+        gathered for this project to classify for affiliate status.
+    """
     col_dict = dict()
     col_dict['training_website_name'] = list()
     col_dict['training_target'] = list()
@@ -80,29 +117,36 @@ def build_col_dict(info_dict,parameter_list,url_map):
         col_dict[parameter] = list()
         for url in url_map:
             hostname = urlparse(url_map[url]).hostname
-            if parameter in info_dict[hostname][url_map[url]]['anchors'][url]['queries']:
-                col_dict[parameter].append(1)
+            queries = info_dict[hostname][url_map[url]]['anchors'][url]['queries']
+            if parameter in queries:
+                col_dict[parameter].append(value_map[queries[parameter]])
             else:
                 col_dict[parameter].append(0)
     return col_dict
 
-def build_rows(row_dict):
+
+def build_csv_head(parameter_list):
+    header = "webpage_from_training_set, "
+    for parameter in parameter_list:
+        header += parameter + ", "
+    header = header[0:len(header)-2] + "\n"
+    return header
+
+
+def build_csv_rows(row_dict):
     csv = str()
     for row in row_dict:
         csv += row + " , " + str(row_dict[row])[1:len(row_dict[row])-2] + "\n"
     return csv
 
-'''
+
+
 parameter_list = build_parameter_list(parameter_dict)
-print(parameter_list)
-
+value_map = build_value_map(info_dict)
 url_map = build_url_map(info_dict)
-
-col_dict = build_col_dict(info_dict, parameter_list, url_map)
+col_dict = build_col_dict(info_dict, parameter_list, url_map,value_map)
 
 frame = pd.DataFrame(col_dict)
-
-print(frame)
 
 y = frame['training_target']
 
@@ -111,13 +155,13 @@ h = frame['training_website_name']
 X = frame.drop(['training_target','training_website_name'], axis = 1)
 
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.50, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.20, random_state=0)
 
 n_estimators = [int(x) for x in np.linspace(start = 10, stop = 80, num = 10)]
-max_features = ['auto','sqrt']
-max_depth = [2,4]
-min_samples_split = [2, 5]
-min_samples_leaf = [1,2]
+max_features = ['auto','sqrt','log2']
+max_depth = [2,4] + [int(x) for x in np.linspace(start = 6, stop = len(parameter_list)//2, num = 8)]
+min_samples_split = [2, 5] + [round(math.log(len(parameter_list))/math.log(2))]
+min_samples_leaf = [1,2] + [round(math.log(len(parameter_list))/math.log(2))]
 bootstrap = [True, False]
 #n_estimators and depth
 param_grid = {'n_estimators': n_estimators,
@@ -129,18 +173,31 @@ param_grid = {'n_estimators': n_estimators,
 
 rf_model = RandomForestClassifier(oob_score=True)
 
+'''
+#regular random forest:
+rf_model.fit(X_train,y_train)
+print(rf_model.oob_score_)
+print (f'Train Accuracy - : {rf_model.score(X_train,y_train):.3f}')
+print (f'Test Accuracy - : {rf_model.score(X_test,y_test):.3f}')
+print(X.columns)
+print(rf_model.feature_importances_)
+features = list()
+for i in range(0,len(X.columns)):
+    if rf_model.feature_importances_[i] > 0:
+        features.append((X.columns[i],rf_model.feature_importances_[i]))
+print(features)
+'''
 
+'''
+#grid search random forest:
 rf_grid = GridSearchCV(estimator = rf_model, param_grid = param_grid, cv = 5, verbose = 2, n_jobs = 4)
 rf_grid.fit(X_train,y_train)
-
-
 
 print(rf_grid.best_params_)
 
 print (f'Train Accuracy - : {rf_grid.score(X_train,y_train):.3f}')
 print (f'Test Accuracy - : {rf_grid.score(X_test,y_test):.3f}')
 
-#print(type(rf_grid))
 features = list()
 fd = dict()
 for i in range(0,len(X.columns)):
@@ -148,26 +205,4 @@ for i in range(0,len(X.columns)):
         features.append((X.columns[i],rf_grid.best_estimator_.feature_importances_[i]))
         fd[rf_grid.best_estimator_.feature_importances_[i]] = X.columns[i]
 print(features)
-
 '''
-'''
-rf_model.fit(X_train,y_train)
-print(rf_model.oob_score_)
-
-print (f'Train Accuracy - : {rf_model.score(X_train,y_train):.3f}')
-print (f'Test Accuracy - : {rf_model.score(X_test,y_test):.3f}')
-
-print(X.columns)
-print(rf_model.feature_importances_)
-
-
-features = list()
-for i in range(0,len(X.columns)):
-    if rf_model.feature_importances_[i] > 0:
-        features.append((X.columns[i],rf_model.feature_importances_[i]))
-
-print(features)
-'''
-
-
-print(len(build_value_map(info_dict)))
