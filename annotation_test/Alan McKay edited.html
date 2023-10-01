@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+
+<html prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="utf-8"/>
+<link href="normalize.css" rel="stylesheet"/>
+<link href="style.css" rel="stylesheet"/>
+<link href="http://alanmckay.blog" rel="canonical"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0" name="viewport"/>
+<title>Alan McKay</title>
+<meta content="Alan McKay" name="author"/>
+<meta content="Alan McKay | Home" name="title" property="og:title"/>
+<meta content="Homepage of Alan Mckay. Directory for writings, projects, and social media. Computer Scientist and graduate student at the University of Iowa." name="description" property="og:description"/>
+<meta content="https://live.staticflickr.com/65535/51670361446_68f298f9fd_b.jpg" name="image" property="og:image"/>
+<meta content="627" property="og:image:height"/>
+<meta content="1200" property="og:image:width"/>
+<meta content="website" property="og:type"/>
+<meta content="http://alanmckay.blog/" property="og:url"/>
+<meta content="Alan McKay, Iowa, Iowa City, Cedar Falls, University of Iowa, University of Northern Iowa, UofI, UNI, Computer Science" name="keywords"/>
+</head>
+<body>
+<div id="homeWrapper">
+<header>
+<h1><a href onclick="annotation_prompt(None)">Alan McKay</a></h1>
+</header>
+<nav>
+<a href onclick="annotation_prompt(None)">
+<img alt="Icon for blog link" src="images/text-logo-grey.png"/>
+                    Writings
+                </a>
+<a href onclick="annotation_prompt(None)" rel="noopener noreferrer" style="border:red 5px solid;" target="_blank">
+<img alt="Icon for VSCO link" src="images/vsco-logo-grey.png"/>
+                    VSCO
+                </a>
+<a href onclick="annotation_prompt(None)" rel="noopener noreferrer" target="_blank">
+<img alt="Icon for Github Link" src="images/github-logo-grey.png"/>
+                    GitHub
+                </a>
+<a href onclick="annotation_prompt(None)" rel="noopener noreferrer" target="_blank">
+<img alt="Icon for linked-in Link" src="images/linkedin-logo-grey.png"/>
+                    LinkedIn
+                </a>
+</nav>
+</div>
+</body>
+<script>
+    var a = document.createElement("a");
+    a.download = 'links.txt';
+    var listing = ["www.google.com\nwww.yahoo.com\n"];
+    console.log(listing);
+
+    function annotation_function(url){
+        annotation_response = prompt("Please enter annotation value for " + url);
+        console.log(annotation_response);
+        if (annotation_response == "yes") {
+            listing = [listing[0]+annotation_response+"\n"];
+            console.log(listing);
+            a.href = window.URL.createObjectURL(new Blob(listing, {type: "text/plain"}));
+            a.click();
+        }
+    }
+</script>
+</html>
