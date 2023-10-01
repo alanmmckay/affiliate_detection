@@ -1,6 +1,6 @@
 import json
 
-f = open("analysis_files/info.json","r")
+f = open("analysis_files/subset_info.json","r")
 data = f.read()
 f.close()
 
@@ -59,13 +59,13 @@ for key in keys:
 
 #print(json.dumps(parameter_counts,indent=4))
 
-f = open('analysis_files/p_map.json','w')
+f = open('analysis_files/subset_p_map.json','w')
 f.write(json.dumps(parameter_map, indent = 4))
 f.close()
 
 sorted_obj = sorted(parameters_list.items(), key = lambda x:x[1])
 sorted_parameters_list = {val[0] : val[1] for val in reversed(sorted_obj)}
 
-f = open('analysis_files/parameters_list.json','w')
+f = open('analysis_files/subset_parameters_list.json','w')
 f.write(json.dumps(sorted_parameters_list, indent = 4))
 f.close()

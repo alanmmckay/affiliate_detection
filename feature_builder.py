@@ -3,7 +3,8 @@ import pandas as pd
 from urllib.parse import urlparse
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
+from sklearn.metrics import recall_score, precision_score, f1_score
 import numpy as np
 import math
 
@@ -26,8 +27,8 @@ def build_parameter_list(parameter_dict):
 
 def build_url_map(info_dict):
     """
-        A function which receives a dictionary formed through a crawl for the
-        context of this project and returns a dictionary whose keys are the
+        A function which receives a dictionary formed through a crawl (in the
+        context of this project) and returns a dictionary whose keys are the
         urls contained in each pages' anchor tags. The values for these keys
         are the urls which contain the anchor tags. This is used to allow
         easy navigation through dictionary formed through the crawl.
@@ -42,8 +43,8 @@ def build_url_map(info_dict):
 
 def build_value_map(info_dict):
     """
-        A function which receives a dictionary formed through a crawl for the
-        context of this project and returns a dictionary whose keys are the
+        A function which receives a dictionary formed through a crawl (in the
+        context of this project) and returns a dictionary whose keys are the
         values of query string parameters discovered through the crawl. A
         value of this dictionary's key set is some unique value to act as an
         encoding.
@@ -88,7 +89,7 @@ def build_row_dict(info_dict, parameter_list):
     return site_dict
 
 
-def build_col_dict(info_dict,parameter_list,url_map):
+def build_col_dict(info_dict,parameter_list,url_map,value_map):
     """
         A function which produces a dictionary whose keys are some query-string
         paramter and the values are a list where each entry (i) of the list is
@@ -113,36 +114,23 @@ def build_col_dict(info_dict,parameter_list,url_map):
             hostname = urlparse(url_map[url]).hostname
             queries = info_dict[hostname][url_map[url]]['anchors'][url]['queries']
             if parameter in queries:
-                col_dict[parameter].append(queries[parameter])
+                col_dict[parameter].append(value_map[queries[parameter]])
+                #col_dict[parameter].append(1)
             else:
                 col_dict[parameter].append(0)
-        le = LabelEncoder()
-        le.fit(col_dict[parameter])
-        col_dict[parameter] = le.transform(col_dict[parameter])
     return col_dict
-
-
-def build_csv_head(parameter_list):
-    header = "webpage_from_training_set, "
-    for parameter in parameter_list:
-        header += parameter + ", "
-    header = header[0:len(header)-2] + "\n"
-    return header
-
-
-def build_csv_rows(row_dict):
-    csv = str()
-    for row in row_dict:
-        csv += row + " , " + str(row_dict[row])[1:len(row_dict[row])-2] + "\n"
-    return csv
-
 
 parameter_list = build_parameter_list(parameter_dict)
 value_map = build_value_map(info_dict)
 url_map = build_url_map(info_dict)
-col_dict = build_col_dict(info_dict, parameter_list, url_map)
+col_dict = build_col_dict(info_dict, parameter_list, url_map,value_map)
 
 frame = pd.DataFrame(col_dict)
+
+oe = OrdinalEncoder()
+oe.fit(frame[parameter_list])
+frame[parameter_list] = oe.transform(frame[parameter_list])
+
 y = frame['training_target']
 h = frame['training_website_name']
 X = frame.drop(['training_target','training_website_name'], axis = 1)
@@ -164,8 +152,7 @@ param_grid = {'n_estimators': n_estimators,
                'min_samples_leaf': min_samples_leaf,
                'bootstrap': bootstrap,
                'oob_score': oob_score}
-
-
+#label studio
 
 #regular random forest:
 #{'bootstrap': True, 'max_depth': 10, 'max_features': 'log2', 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 10, 'oob_score': False}
@@ -174,6 +161,16 @@ rf_model.fit(X_train,y_train)
 #print(rf_model.oob_score_)
 print (f'Train Accuracy - : {rf_model.score(X_train,y_train):.3f}')
 print (f'Test Accuracy - : {rf_model.score(X_test,y_test):.3f}')
+
+print(f'Train precision - : {precision_score(y_train,rf_model.predict(X_train)):.3f}')
+print(f'Test precision - : {precision_score(y_test,rf_model.predict(X_test)):.3f}')
+
+print(f'Train recall - : {recall_score(y_train,rf_model.predict(X_train)):.3f}')
+print(f'Test recall - : {recall_score(y_test,rf_model.predict(X_test)):.3f}')
+
+print(f'Train f1score - : {f1_score(y_train,rf_model.predict(X_train)):.3f}')
+print(f'Test f1score - : {f1_score(y_test,rf_model.predict(X_test)):.3f}')
+
 #print(X.columns)
 #print(rf_model.feature_importances_)
 features = list()
@@ -182,6 +179,8 @@ for i in range(0,len(X.columns)):
         features.append((X.columns[i],rf_model.feature_importances_[i]))
 #print(features)
 
+#majority class - stupidest classifier that has learned nothing - base rate fallacy
+#build intuition
 
 '''
 #grid search random forest:
