@@ -22,6 +22,10 @@ inputStr = input("Input website URL: ")
 
 while inputStr not in quit:
 
+    f = open('links.txt','w')
+    f.write('')
+    f.close()
+
     url = inputStr
 
     hostname = urlparse(inputStr).hostname
@@ -71,7 +75,6 @@ while inputStr not in quit:
 
             while inputStr != "continue":
                 inputStr = input("Input 'continue' once links have been selected: ")
-
 
             f = open('links.txt','r')
             link_listing = f.readlines()
