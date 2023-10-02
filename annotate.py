@@ -89,6 +89,20 @@ while inputStr not in quit:
             json_handler.write_to_file('analysis_files/info.json',info)
             os.system('firefoxPID=$(pgrep firefox); kill $firefoxPID;')
 
+            inputStr = input("Input 'show' to display list of anchors that are not annotated; Input 'continue' to continue: ")
+
+            while inputStr != 'continue':
+                if inputStr == 'show':
+                    anchors = info[hostname][url]['anchors']
+                    for anchor in anchors:
+                        if anchors[anchor]['annotation'] == None:
+                            print(anchor)
+                            print()
+                    inputStr = 'continue'
+                else:
+                    inputStr = input("Input 'show' to display list of anchors that are not annotated; Input 'continue' to continue: ")
+
+
     else:
 
         print(" !!! Invalid URL: ")
