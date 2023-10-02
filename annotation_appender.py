@@ -10,14 +10,14 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
 
     for link in soup.findAll('a'):
         try:
-            link['onclick'] = "annotation_function('"+str(link['href'])+"');"
+            link['onclick'] = "return annotation_function('"+str(link['href'])+"');"
         except:
             print()
             print("Annotation Function Error with following object: ")
             print(link)
             print()
             link['onclick'] = "annotation_function('#');"
-        del link['href']
+        #del link['href']
         try:
             link['style'] = link['style'] + ';;border: solid red 5px;'
         except:
@@ -25,7 +25,7 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
         link['onMouseOver'] = 'this.style.cursor="pointer"'
 
 
-    script_string = "var a = document.createElement('a');\na.download = 'links.txt';\n"
+    script_string = "var a = document.createElement('a');\na.download = 'links.txt';\na.onclick = 'return false';\n"
 
     f = open(link_bucket_file_name,"r")
     links_data = f.readlines()
@@ -37,7 +37,7 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
 
     script_string += "\nvar listing = ['"+links_string+"'];\n"
 
-    script_string += "console.log(listing);\nfunction annotation_function(url){\nannotation_response = prompt('Please enter annotation value for ' + url);\nconsole.log(annotation_response);\nif (annotation_response == 'yes') {\nlisting = [listing[0]+url+'\\n'];\nconsole.log(listing);\na.href = window.URL.createObjectURL(new Blob(listing, {type: 'text/plain'}));\na.click();\n} \n}"
+    script_string += "console.log(listing);\nfunction annotation_function(url){\nannotation_response = prompt('Please enter annotation value for ' + url);\nconsole.log(annotation_response);\nif (annotation_response == 'yes') {\nlisting = [listing[0]+url+'\\n'];\nconsole.log(listing);\na.href = window.URL.createObjectURL(new Blob(listing, {type: 'text/plain'}));\na.click();\n}\nreturn false; \n}"
 
     new_tag = soup.new_tag("script", id="annotation_script")
     new_tag.string = script_string
