@@ -53,9 +53,11 @@ def build_value_map(info_dict):
     value_map = dict()
     for hostname in info_dict:
         for url in info_dict[hostname]:
-            for anchor in info_dict[hostname][url]['anchors']:
-                for query in info_dict[hostname][url]['anchors'][anchor]['queries']:
-                    key = info_dict[hostname][url]['anchors'][anchor]['queries'][query]
+            anchors = info_dict[hostname][url]['anchors']
+            for anchor in anchors:
+                queries = info_dict[hostname][url]['anchors'][anchor]['queries']
+                for query in queries:
+                    key = queries[query]
                     try:
                         value_map[key]
                     except:
@@ -74,15 +76,16 @@ def build_row_dict(info_dict, parameter_list):
     site_dict = dict()
     for hostname in info_dict:
         for url in info_dict[hostname]:
-            for anchor in info_dict[hostname][url]['anchors']:
+            anchors = info_dict[hostname][url]['anchors']
+            for anchor in anchors:
                 site_dict[anchor] = list()
                 for parameter in parameter_list:
-                    queries = info_dict[hostname][url]['anchors'][anchor]['queries']
+                    queries = anchors[anchor]['queries']
                     if parameter in queries:
                         site_dict[anchor].append(1)
                     else:
                         site_dict[anchor].append(0)
-                if info_dict[hostname][url]['anchors'][anchor]['annotation'] == 'yes':
+                if anchors[anchor]['annotation'] == 'yes':
                     site_dict[anchor].append(1)
                 else:
                     site_dict[anchor].append(0)
@@ -119,6 +122,7 @@ def build_col_dict(info_dict,parameter_list,url_map,value_map):
             else:
                 col_dict[parameter].append(0)
     return col_dict
+
 
 parameter_list = build_parameter_list(parameter_dict)
 value_map = build_value_map(info_dict)
