@@ -9,7 +9,14 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
     soup = BeautifulSoup(file_data,features="html.parser")
 
     for link in soup.findAll('a'):
-        link['onclick'] = "annotation_function('"+str(link['href'])+"');"
+        try:
+            link['onclick'] = "annotation_function('"+str(link['href'])+"');"
+        except:
+            print()
+            print("Annotation Function Error with following object: ")
+            print(link)
+            print()
+            link['onclick'] = "annotation_function('#');"
         del link['href']
         try:
             link['style'] = link['style'] + ';;border: solid red 5px;'
