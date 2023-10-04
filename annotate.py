@@ -48,7 +48,7 @@ def manual_entry_subroutine():
 
 while inputStr not in quit:
 
-    f = open('links.txt','w')
+    f = open('temp/links.txt','w')
     f.write('')
     f.close()
 
@@ -80,7 +80,7 @@ while inputStr not in quit:
             while inputStr != "continue":
                 inputStr = input("Input 'continue' once links have been selected: ")
 
-            f = open('links.txt','r')
+            f = open('temp/links.txt','r')
             link_listing = f.readlines()
             f.close()
 
@@ -106,6 +106,10 @@ while inputStr not in quit:
                     manual_entry_subroutine()
                 inputStr = input("Input 'show' to display list of anchors that are not annotated; Input manual for manual entry on this URL; Input 'continue' to continue: ")
 
+        f = open('annotated_pages.txt','a')
+        f.write(url + "\n")
+        f.close()
+        print(url + " added to annotated_pages.txt")
 
     else:
 
