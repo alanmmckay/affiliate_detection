@@ -6,6 +6,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.metrics import recall_score, precision_score, f1_score
+from sklearn.dummy import DummyClassifier
+
 
 from helper_functions import JsonInterface
 from feature_builder import build_parameter_list,build_url_map,build_value_map,build_col_dict
@@ -48,9 +50,11 @@ param_grid = {'n_estimators': n_estimators,
                'oob_score': oob_score}
 #label studio
 
+
 #regular random forest:
 #{'bootstrap': True, 'max_depth': 10, 'max_features': 'log2', 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 10, 'oob_score': False}
-rf_model = RandomForestClassifier(bootstrap = True, max_depth = 10, max_features = 'log2', min_samples_leaf = 1, min_samples_split = 2, n_estimators = 10, oob_score = False)
+grid_res = {'bootstrap': True, 'max_depth': 31, 'max_features': 'sqrt', 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 10, 'oob_score': True}
+rf_model = RandomForestClassifier(bootstrap = grid_res['bootstrap'], max_depth = grid_res['max_depth'], max_features = grid_res["max_features"], min_samples_leaf = grid_res['min_samples_leaf'], min_samples_split = grid_res['min_samples_split'], n_estimators = grid_res['n_estimators'], oob_score = grid_res['oob_score'])
 rf_model.fit(X_train,y_train)
 #print(rf_model.oob_score_)
 print (f'Train Accuracy - : {rf_model.score(X_train,y_train):.3f}')
@@ -108,6 +112,7 @@ json_handler.write_to_file("rankings.json",rank_dict)
 from sklearn.tree import export_graphviz
 import os
 count = 0
+'''
 for tree in rf_model.estimators_:
     dotdata = export_graphviz(tree,feature_names = X.columns, filled = True, rounded = True)
     f = open('tree'+str(count)+'.dot','w')
@@ -116,4 +121,19 @@ for tree in rf_model.estimators_:
     os.system('dot -Tpng tree'+str(count)+'.dot -o tree'+str(count)+'.png')
     os.system('rm tree'+str(count)+'.dot')
     count += 1
+'''
+strategies = ['most_frequent', 'stratified', 'uniform']
 
+test_scores = {}
+for s in strategies:
+	if s =='constant':
+		continue
+	else:
+		dclf = DummyClassifier(strategy = s, random_state = 0)
+	dclf.fit(X_train, y_train)
+	score = dclf.score(X_test, y_test)
+	test_scores[s] = score
+
+strategies.append('rf_model')
+test_scores['rf_model'] = rf_model.score(X_test,y_test)
+print(test_scores)
