@@ -43,9 +43,9 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
     script_string += "function annotation_function(url,id){\n"
     script_string += "console.log(id);\n"
     script_string += "var container = document.getElementsByClassName(id)[0];\nconsole.log(container);\n"
-    script_string += "annotation_response = prompt('Please enter annotation value for ' + url);\n"
+    script_string += "annotation_response = confirm('Annotate ' + url + '?');\n"
     script_string += "console.log(annotation_response);\n"
-    script_string += "if (annotation_response == 'yes') {\nlisting = [listing[0]+url+'\\n'];\nconsole.log(listing);\na.href = window.URL.createObjectURL(new Blob(listing, {type: 'text/plain'}));\na.click();\n"
+    script_string += "if (annotation_response == true) {\nlisting = [listing[0]+url+'\\n'];\nconsole.log(listing);\na.href = window.URL.createObjectURL(new Blob(listing, {type: 'text/plain'}));\na.click();\n"
     script_string += "container.style.borderColor = 'grey';}\nreturn false; \n}"
 
     new_tag = soup.new_tag("script", id="annotation_script")
