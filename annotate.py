@@ -17,7 +17,7 @@ if not (mode == "ui" or mode =="manual"):
 inputStr = str()
 quit = ['quit','Quit','QUIT']
 cont = ['continue','Continue']
-whitelist = ["rstyle.me","go.skimresources.com","click.linksynergy.com"]
+whitelist = ["rstyle.me","go.skimresources.com","click.linksynergy.com","go.magik.ly",'shopstyle.it','fave.co','c.klarna.com']
 inputStr = input("Input website URL: ")
 
 def manual_entry_subroutine():
@@ -71,7 +71,14 @@ while inputStr not in quit:
             manual_entry_subroutine()
 
         elif mode == "ui":
-            append_script('datadir/sources/'+local_page, url, "links.txt", "temp.html")
+
+            try:
+                append_script('datadir/sources/'+local_page, url, "links.txt", "temp.html")
+            except:
+                print("Error reading " + local_page)
+                local_page = input("Input alternative page with path: ")
+                append_script('datadir/sources/'+local_page, url, "links.txt", "temp.html")
+
 
             os.system('firefox temp.html > /dev/null 2>&1 &')
 
