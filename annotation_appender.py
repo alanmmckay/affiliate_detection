@@ -1,4 +1,7 @@
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+
+whitelist = ["rstyle.me","go.skimresources.com","click.linksynergy.com","go.magik.ly",'shopstyle.it','fave.co','c.klarna.com']
 
 def append_script(source_file_name, source_url, link_bucket_file_name, altered_file_location):
 
@@ -22,9 +25,16 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
             link['onclick'] = "annotation_function('#');"
         #del link['href']
         try:
-            link['style'] = link['style'] + ';;border: solid red 5px;'
+            if urlparse(link['href']).hostname in whitelist:
+                color = "grey"
+            else:
+                color = 'red'
         except:
-            link['style'] = 'border:solid red 5px;'
+            color = 'red'
+        try:
+            link['style'] = link['style'] + ';;border: solid '+color+' 5px;'
+        except:
+            link['style'] = 'border:solid '+color+' 5px;'
         link['onMouseOver'] = 'this.style.cursor="pointer"'
 
     script_string = "var a = document.createElement('a');\na.download = 'links.txt';\na.onclick = 'return false';\n"
