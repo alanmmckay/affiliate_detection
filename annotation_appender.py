@@ -8,9 +8,12 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
 
     soup = BeautifulSoup(file_data,features="html.parser")
 
+    link_count = 0
     for link in soup.findAll('a'):
+        link_count += 1
+        link['class'] = link.get('class', []) + ['annotate_'+str(link_count)]
         try:
-            link['onclick'] = "return annotation_function('"+str(link['href'])+"');"
+            link['onclick'] = "return annotation_function('"+str(link['href'])+"','annotate_"+str(link_count)+"');"
         except:
             print()
             print("Annotation Function Error with following object: ")
@@ -24,7 +27,6 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
             link['style'] = 'border:solid red 5px;'
         link['onMouseOver'] = 'this.style.cursor="pointer"'
 
-
     script_string = "var a = document.createElement('a');\na.download = 'links.txt';\na.onclick = 'return false';\n"
 
     f = open(link_bucket_file_name,"r")
@@ -37,7 +39,14 @@ def append_script(source_file_name, source_url, link_bucket_file_name, altered_f
 
     script_string += "\nvar listing = ['"+links_string+"'];\n"
 
-    script_string += "console.log(listing);\nfunction annotation_function(url){\nannotation_response = prompt('Please enter annotation value for ' + url);\nconsole.log(annotation_response);\nif (annotation_response == 'yes') {\nlisting = [listing[0]+url+'\\n'];\nconsole.log(listing);\na.href = window.URL.createObjectURL(new Blob(listing, {type: 'text/plain'}));\na.click();\n}\nreturn false; \n}"
+    script_string += "console.log(listing);\n"
+    script_string += "function annotation_function(url,id){\n"
+    script_string += "console.log(id);\n"
+    script_string += "var container = document.getElementsByClassName(id)[0];\nconsole.log(container);\n"
+    script_string += "annotation_response = prompt('Please enter annotation value for ' + url);\n"
+    script_string += "console.log(annotation_response);\n"
+    script_string += "if (annotation_response == 'yes') {\nlisting = [listing[0]+url+'\\n'];\nconsole.log(listing);\na.href = window.URL.createObjectURL(new Blob(listing, {type: 'text/plain'}));\na.click();\n"
+    script_string += "container.style.borderColor = 'grey';}\nreturn false; \n}"
 
     new_tag = soup.new_tag("script", id="annotation_script")
     new_tag.string = script_string
