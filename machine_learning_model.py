@@ -32,14 +32,13 @@ h = frame['training_website_name']
 X = frame.drop(['training_target','training_website_name'], axis = 1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.20, random_state=0)
-
 n_estimators = [int(x) for x in np.linspace(start = 10, stop = 80, num = 10)]
 max_features = ['sqrt','log2']
 max_depth = [2,4] + [int(x) for x in np.linspace(start = 6, stop = len(parameter_list)//2, num = 8)]
 min_samples_split = [2, 5] + [round(math.log(len(parameter_list))/math.log(2))]
 min_samples_leaf = [1,2] + [round(math.log(len(parameter_list))/math.log(2))]
-bootstrap = [True, False]
-oob_score = [True, False]
+bootstrap = [True]#, False]
+oob_score = [False]#, True]
 #n_estimators and depth
 param_grid = {'n_estimators': n_estimators,
                'max_features': max_features,
@@ -57,17 +56,6 @@ grid_res = {'bootstrap': True, 'max_depth': 31, 'max_features': 'sqrt', 'min_sam
 rf_model = RandomForestClassifier(bootstrap = grid_res['bootstrap'], max_depth = grid_res['max_depth'], max_features = grid_res["max_features"], min_samples_leaf = grid_res['min_samples_leaf'], min_samples_split = grid_res['min_samples_split'], n_estimators = grid_res['n_estimators'], oob_score = grid_res['oob_score'])
 rf_model.fit(X_train,y_train)
 #print(rf_model.oob_score_)
-print (f'Train Accuracy - : {rf_model.score(X_train,y_train):.3f}')
-print (f'Test Accuracy - : {rf_model.score(X_test,y_test):.3f}')
-
-print(f'Train precision - : {precision_score(y_train,rf_model.predict(X_train)):.3f}')
-print(f'Test precision - : {precision_score(y_test,rf_model.predict(X_test)):.3f}')
-
-print(f'Train recall - : {recall_score(y_train,rf_model.predict(X_train)):.3f}')
-print(f'Test recall - : {recall_score(y_test,rf_model.predict(X_test)):.3f}')
-
-print(f'Train f1score - : {f1_score(y_train,rf_model.predict(X_train)):.3f}')
-print(f'Test f1score - : {f1_score(y_test,rf_model.predict(X_test)):.3f}')
 
 #print(X.columns)
 #print(rf_model.feature_importances_)
@@ -112,7 +100,7 @@ json_handler.write_to_file("rankings.json",rank_dict)
 from sklearn.tree import export_graphviz
 import os
 count = 0
-'''
+
 for tree in rf_model.estimators_:
     dotdata = export_graphviz(tree,feature_names = X.columns, filled = True, rounded = True)
     f = open('tree'+str(count)+'.dot','w')
@@ -121,10 +109,14 @@ for tree in rf_model.estimators_:
     os.system('dot -Tpng tree'+str(count)+'.dot -o tree'+str(count)+'.png')
     os.system('rm tree'+str(count)+'.dot')
     count += 1
-'''
-strategies = ['most_frequent', 'stratified', 'uniform']
 
-test_scores = {}
+#strategies = ['most_frequent', 'stratified', 'uniform']
+strategies = ['stratified','uniform']
+accuracy_scores = {}
+precision_scores = {}
+recall_scores = {}
+f1_scores = {}
+#precision_score(y_test,rf_model.predict(X_test))
 for s in strategies:
 	if s =='constant':
 		continue
@@ -132,8 +124,19 @@ for s in strategies:
 		dclf = DummyClassifier(strategy = s, random_state = 0)
 	dclf.fit(X_train, y_train)
 	score = dclf.score(X_test, y_test)
-	test_scores[s] = score
+	accuracy_scores[s] = score
+	score = precision_score(y_test,dclf.predict(X_test))
+	precision_scores[s] = score
+	score = recall_score(y_test,dclf.predict(X_test))
+	recall_scores[s] = score
+	score = f1_score(y_test,dclf.predict(X_test))
+	f1_scores[s] = score
 
-strategies.append('rf_model')
-test_scores['rf_model'] = rf_model.score(X_test,y_test)
-print(test_scores)
+accuracy_scores['rf_model'] = rf_model.score(X_test,y_test)
+precision_scores['rf_model'] = precision_score(y_test,rf_model.predict(X_test))
+recall_scores['rf_model'] = recall_score(y_test,rf_model.predict(X_test))
+f1_scores['rf_model'] = f1_score(y_test,rf_model.predict(X_test))
+print("Accuracy Scores: "+str(accuracy_scores))
+print("Precision Scores: "+str(precision_scores))
+print("Recall Scores: "+str(recall_scores))
+print("F1 Scores: "+str(f1_scores))
