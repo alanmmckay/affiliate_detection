@@ -53,9 +53,8 @@ def build_hyperparameter_grid(parameter_list):
 
 def fit_random_forest(X_train,y_train):
     #regular random forest:
-    #{'bootstrap': True, 'max_depth': 10, 'max_features': 'log2', 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 10, 'oob_score': False}
-    #{'bootstrap': True, 'max_depth': 31, 'max_features': 'sqrt', 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 10, 'oob_score': True}
-    grid_res = {'bootstrap': True, 'max_depth': 31, 'max_features': 'log2', 'min_samples_leaf': 1, 'min_samples_split': 8, 'n_estimators': 48, 'oob_score': False}
+    # Sample Set {'bootstrap': True, 'max_depth': 20, 'max_features': 'log2', 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 48, 'oob_score': False}
+    grid_res = {'bootstrap': True, 'max_depth': 103, 'max_features': 'log2', 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 10, 'oob_score': False}
     rf_model = RandomForestClassifier(  bootstrap = grid_res['bootstrap'], \
                                         max_depth = grid_res['max_depth'], \
                                         max_features = grid_res["max_features"], \
@@ -157,10 +156,3 @@ def score_subroutine(rf_model,X_test,y_test):
 
 score_subroutine(rf_grid,X_test,y_test)
 
-'''
-#gridsearchcv scores:
-Accuracy Scores: {'stratified': 0.5668276972624798, 'uniform': 0.5040257648953301, 'rf_model': 0.8663446054750402}
-Precision Scores: {'stratified': 0.24848484848484848, 'uniform': 0.3105590062111801, 'rf_model': 0.9813084112149533}
-Recall Scores: {'stratified': 0.22043010752688172, 'uniform': 0.5376344086021505, 'rf_model': 0.5645161290322581}
-F1 Scores: {'stratified': 0.23361823361823364, 'uniform': 0.39370078740157477, 'rf_model': 0.7167235494880546}
-'''
