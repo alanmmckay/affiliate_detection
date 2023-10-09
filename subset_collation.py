@@ -17,6 +17,7 @@ for page in annotated:
         annotated_json[hostname] = dict()
     annotated_json[hostname][page] = main_info[hostname][page]
     for anchor in annotated_json[hostname][page]['anchors']:
+        annotated_json[hostname][page]['anchors'][anchor]['redirects'] = dict()
         if annotated_json[hostname][page]['anchors'][anchor]['annotation'] == None:
             annotated_json[hostname][page]['anchors'][anchor]['annotation'] = "no"
 
