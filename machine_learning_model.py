@@ -100,10 +100,10 @@ def build_grid_features_map(features_list):
     rank_dict = sorted(rank_dict.items())
     return rank_dict
 
-#rf_grid = fit_random_forest_with_grid_search(X_train,y_train,parameter_list)
-#best_grid_features = build_grid_best_features(rf_grid)
-rf_grid = fit_random_forest(X_train,y_train)
-best_grid_features = build_model_best_features(rf_grid,X)
+rf_grid = fit_random_forest_with_grid_search(X_train,y_train,parameter_list)
+best_grid_features = build_grid_best_features(rf_grid)
+#rf_grid = fit_random_forest(X_train,y_train)
+#best_grid_features = build_model_best_features(rf_grid,X)
 features_map = build_grid_features_map(best_grid_features)
 
 json_handler.write_to_file("rankings.json",features_map)
@@ -113,7 +113,7 @@ import os
 count = 0
 
 '''
-for tree in rf_model.estimators_:
+for tree in rf_grid.estimators_:
     dotdata = export_graphviz(tree,feature_names = X.columns, filled = True, rounded = True)
     f = open('tree'+str(count)+'.dot','w')
     f.write(dotdata)
@@ -124,8 +124,7 @@ for tree in rf_model.estimators_:
 '''
 
 def score_subroutine(rf_model,X_test,y_test):
-    #strategies = ['most_frequent', 'stratified', 'uniform']
-    strategies = ['stratified','uniform','most_frequent']
+    strategies = ['stratified','uniform','constant']#,'most_frequent']
     accuracy_scores = {}
     precision_scores = {}
     recall_scores = {}
@@ -134,7 +133,7 @@ def score_subroutine(rf_model,X_test,y_test):
 
     for s in strategies:
         if s =='constant':
-            continue
+            dclf = DummyClassifier(strategy = s, random_state = 0, constant = 0)
         else:
             dclf = DummyClassifier(strategy = s, random_state = 0)
         dclf.fit(X_train, y_train)
